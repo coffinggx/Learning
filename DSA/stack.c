@@ -60,15 +60,66 @@ void print_stack(const Stack *s) {
 int main() {
   Stack s;
   s.top = -1;
-  push(&s, 1);
-  push(&s, 3);
-  print_stack(&s);
-  pop(&s);
-  print_stack(&s);
-  empty(&s);
-  printf("After applying empty\n");
-  print_stack(&s);
-  push(&s, 3);
-  printf("Seeking: %d\n", peek(&s));
+  //push(&s, 1);
+  //push(&s, 3);
+  //print_stack(&s);
+  //pop(&s);
+  //print_stack(&s);
+  //empty(&s);
+  //printf("After applying empty\n");
+  //print_stack(&s);
+  //push(&s, 3);
+  //printf("Seeking: %d\n", peek(&s));
+
+
+
+  // menu driven for simplicity
+
+  bool loop_var = true;
+  while(loop_var){
+    int num;
+    int choice = 0;
+    printf("Choose a option to stack operations\n");
+    printf("1: Push\n");
+    printf("2: Pop\n");
+    printf("3: Peek\n");
+    printf("4: Empty stack\n");
+    printf("5: Check if empty\n");
+    printf("Anything other than option to quit\n");
+    scanf("%d", &choice);
+
+    switch(choice){
+      case 1:
+        printf("Enter a element to push: ");
+        scanf("%d", &num);
+        push(&s, num);
+        break;
+      case 2:
+        printf("Popped : %d\n",pop(&s));
+        break;
+      case 3:
+        printf("Peeked top: %d\n", peek(&s));
+        break;
+      case 4:
+        empty(&s);
+        printf("Stack emptied\n");
+        break;
+      case 5:
+        if(empty(&s)){
+          printf("The stack is empty\n");
+        } else {
+          printf("The stack is not  empty\n");
+        }
+        break;
+      default:
+        printf("exiting...");
+        loop_var = false;
+        break;
+    }
+  }
+
+
+
+
   return 0;
 }
