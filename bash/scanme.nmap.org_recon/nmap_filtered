@@ -1,0 +1,6 @@
+PORT      STATE    SERVICE
+22/tcp    open     ssh
+25/tcp    filtered smtp
+80/tcp    open     http
+9929/tcp  open     nping-echo
+31337/tcp open     Elite
