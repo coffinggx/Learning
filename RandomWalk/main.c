@@ -1,16 +1,14 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_timer.h>
-#include <SDL2/SDL_video.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
 #define SCALE 10
-#define HEIGHT 600
-#define WIDTH 900
+#define HEIGHT 720
+#define WIDTH 1080
 #define AGENT_PIXEL 2
-typedef enum { POS_X, NEG_X, POS_Y, NEG_Y } Direction;
+
+// typedef enum { POS_X, NEG_X, POS_Y, NEG_Y } Direction;
 
 typedef struct {
   int vx, vy;
@@ -20,6 +18,26 @@ typedef struct {
   int x, y;
   Uint64 color;
 } Agent;
+
+Uint64
+generate_vibrant_color() {    // this function create vibrant colors as range is
+                              // from 128..255 as 0 is dark and 255 is bright
+  int r = 128 + rand() % 128; // 128..255
+  int g = 128 + rand() % 128;
+  int b = 128 + rand() % 128;
+  return (r << 16) | (g << 8) |
+         b; // this basically shifts bits and join with OR operator
+}
+// creating multiple agents with new color for each
+void create_agents(Agent *pagents, int agents) {
+  for (int i = 0; i < agents; ++i) {
+    Uint64 color = generate_vibrant_color();
+    printf("0x%06lX\n", color);
+    pagents[i] = (Agent){WIDTH / 2, HEIGHT / 2, color};
+  }
+}
+
+// generate random velocity or say direction to which it will be going
 Velocity get_rand_velocity() {
   int choice = rand() % 4;
   switch (choice) {
@@ -36,37 +54,36 @@ Velocity get_rand_velocity() {
   }
 }
 
-void move_agent(SDL_Window *window, SDL_Surface *psurface, Agent *pagent) {
+// since random_velocity function increase by 1 pixel so we need line and only
+// update the line
+void move_agent(SDL_Surface *psurface, Agent *pagent) {
   Velocity v = get_rand_velocity();
-  if (pagent->x > WIDTH && pagent->y > HEIGHT) {
-    pagent->x %= (WIDTH / 2);
-    pagent->y %= (HEIGHT / 2);
-  }
   for (int i = 0; i < SCALE; ++i) {
     pagent->x += v.vx;
     pagent->y += v.vy;
-    printf("x: %d, y:%d\n", pagent->x, pagent->y);
+    // printf("x: %d, y:%d\n", pagent->x, pagent->y);
     SDL_FillRect(psurface,
                  &(SDL_Rect){pagent->x, pagent->y, AGENT_PIXEL, AGENT_PIXEL},
                  pagent->color);
   }
 }
 
-Direction get_rand_direction() {
-  int choice = rand() % 4;
-  switch (choice) {
-  case 0:
-    return POS_X;
-  case 1:
-    return POS_Y;
-  case 2:
-    return NEG_X;
-  case 3:
-    return NEG_Y;
-  default:
-    return POS_X;
-  }
-}
+// Was experimenting with enum but it was getting larger and complicated
+// Direction get_rand_direction() {
+//   int choice = rand() % 4;
+//   switch (choice) {
+//   case 0:
+//     return POS_X;
+//   case 1:
+//     return POS_Y;
+//   case 2:
+//     return NEG_X;
+//   case 3:
+//     return NEG_Y;
+//   default:
+//     return POS_X;
+//   }
+// }
 
 int main(int argc, const char *argv[]) {
   int agents = 0;
@@ -84,28 +101,36 @@ int main(int argc, const char *argv[]) {
   }
 
   srand(time(NULL));
+  // creating sdl window
   SDL_Window *window =
       SDL_CreateWindow("Random Walk", SDL_WINDOWPOS_CENTERED,
                        SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
   if (window == NULL) {
     fprintf(stderr, "Sdl window cannot be initialized");
+
     return -1;
   }
 
-  Agent agent1 = (Agent){WIDTH / 2, HEIGHT / 2, 0xFFFFFF};
-  Agent agent2 = (Agent){WIDTH / 2, HEIGHT / 2, 0xFF0000};
+  // dynamic memory allocation for agents
   Agent *pagents = calloc(agents, (sizeof(Agent)));
-  pagents[0]= agent1;
-  pagents[1]= agent2;
+  // creating multiple agents
+  create_agents(pagents, agents);
+
+  // get drawing surface from window
   SDL_Surface *surface = SDL_GetWindowSurface(window);
   int running = 1;
+
+  // infinite loop for continous drawing
   while (running) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
+        // for quiting
         running = 0;
       }
     }
+
+    // Experimental stuffs
     // switch (dir) {
     //  case POS_X:
     //    rect.x += v.vx;
@@ -126,12 +151,21 @@ int main(int argc, const char *argv[]) {
     //  default:
     //    rect.x += v.vx;
     //    rect.y += v.vy;
-    //    break;
+    // break;
     //  }
-    for(int i=0; i<2; ++i){
-      move_agent(window, surface, &pagents[i]);
+    // printf("%d", agents);
+
+    // iterate for different agents
+    for (int i = 0; i < agents; ++i) {
+      move_agent(surface, &pagents[i]);
     }
+    move_agent(surface, &pagents[0]);
+    // update for single line at a time
     SDL_UpdateWindowSurface(window);
+
+    // delay for updating
     SDL_Delay(20);
   }
+  // freeing allocated memory
+  free(pagents);
 }
